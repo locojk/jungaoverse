@@ -1,0 +1,80 @@
+%PDF-1.4
+1 0 obj
+<< /Type /Catalog /Pages 2 0 R >>
+endobj
+2 0 obj
+<< /Type /Pages /Kids [3 0 R] /Count 1 >>
+endobj
+3 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Contents 4 0 R /Resources << /Font << /F1 5 0 R >> >> >>
+endobj
+4 0 obj
+<< /Length 782 >>
+stream
+BT
+/F1 28 Tf
+64 740 Td
+(JUN GAO) Tj
+/F1 14 Tf
+0 -22 Td
+(AI Engineer) Tj
+/F1 12 Tf
+0 -22 Td
+(Ottawa  |  jungaoverse.com) Tj
+/F1 12 Tf
+0 -22 Td
+() Tj
+/F1 12 Tf
+0 -22 Td
+(PLACEHOLDER RESUME) Tj
+/F1 12 Tf
+0 -22 Td
+() Tj
+/F1 12 Tf
+0 -22 Td
+(This file is a stand-in. Replace public/resume.pdf) Tj
+/F1 12 Tf
+0 -22 Td
+(with the real resume. The bridge downloads this) Tj
+/F1 12 Tf
+0 -22 Td
+(path from the self-destruct switch and the dossier.) Tj
+/F1 12 Tf
+0 -22 Td
+() Tj
+/F1 12 Tf
+0 -22 Td
+(Contact) Tj
+/F1 12 Tf
+0 -22 Td
+(hello@jungaoverse.com) Tj
+/F1 12 Tf
+0 -22 Td
+() Tj
+/F1 12 Tf
+0 -22 Td
+(The work, the route, and the stack live on the ship.) Tj
+/F1 12 Tf
+0 -22 Td
+(File the real record in src/content.ts.) Tj
+/F1 12 Tf
+0 -22 Td
+(Do not treat the sample plates as a biography.) Tj
+ET
+endstream
+endobj
+5 0 obj
+<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>
+endobj
+xref
+0 6
+0000000000 65535 f 
+0000000009 00000 n 
+0000000058 00000 n 
+0000000115 00000 n 
+0000000241 00000 n 
+0000001073 00000 n 
+trailer << /Size 6 /Root 1 0 R >>
+startxref
+1143
+%%EOF
