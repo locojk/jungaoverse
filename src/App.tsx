@@ -6,7 +6,6 @@ import {
   consoleOrder,
   crewChairLines,
   profile,
-  recentWork,
   SHIP_DAY,
   stationInfo,
 } from "./content";
@@ -289,13 +288,6 @@ export function App() {
     pushJunior("Résumé delivered. The ship is still in one piece. You're welcome.");
   }
 
-  const sky =
-    weather.status === "live"
-      ? `Ottawa · ${Math.round(weather.tempC ?? 0)}°C · ${weather.label}`
-      : weather.status === "loading"
-        ? "Ottawa · reading the sky"
-        : "Ottawa · sensors offline";
-
   const latestJunior = [...messages].reverse().find((message) => message.role === "junior");
   const prompts = PROMPTS.filter((prompt) => !asked.includes(prompt)).slice(0, 2);
   const seen = (id: StationId) => save.visited.includes(id);
@@ -464,15 +456,6 @@ export function App() {
             Skip the adventure — view résumé →
           </button>
         </header>
-
-        <button type="button" className="live-box" onClick={() => openStation("viewport")}>
-          <span className="live-head">
-            <i />
-            VIEWPORT · LIVE
-          </span>
-          <strong>{sky}</strong>
-          <span>Former captain: {recentWork[0]?.title ?? "slacking off"}</span>
-        </button>
 
         <p className="pan-hint" aria-hidden="true">
           ← swipe to look around the bridge →
