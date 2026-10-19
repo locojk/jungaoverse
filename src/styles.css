@@ -113,11 +113,8 @@ p {
   min-height: 0;
   container-type: size;
   display: flex;
-  align-items: flex-end;
-  justify-content: center;
-  overflow-x: auto;
-  overflow-y: hidden;
-  overscroll-behavior-x: contain;
+  overflow: auto;
+  overscroll-behavior: contain;
   scrollbar-width: none;
 }
 
@@ -128,7 +125,9 @@ p {
 .scene {
   position: relative;
   flex: none;
-  width: min(100cqw, calc(100cqh * 16 / 9));
+  /* Below this size the bridge stops shrinking and the visitor pans instead. */
+  width: max(min(100cqw, calc(100cqh * 16 / 9)), 900px);
+  margin: auto auto 0;
   aspect-ratio: 16 / 9;
   container-type: inline-size;
   user-select: none;
@@ -341,34 +340,33 @@ p {
 
 /* captain's quarters door */
 
+/* Covers the orange status bar painted on the door in bridge.png. */
 .door .lamp {
   position: absolute;
-  top: 5%;
-  right: 12%;
-  width: max(6px, 0.55cqw);
-  aspect-ratio: 1;
-  border-radius: 50%;
+  left: 13.4%;
+  top: 4.1%;
+  width: 71%;
+  height: 4.1%;
+  border-radius: 2px;
   background: var(--red);
-  box-shadow: 0 0 8px var(--red);
-  animation: blink 1.6s steps(2, end) infinite;
+  box-shadow: 0 0 8px rgba(226, 59, 74, 0.8);
 }
 
 .door.unlocked .lamp {
   background: var(--green);
-  box-shadow: 0 0 8px var(--green);
-  animation: none;
+  box-shadow: 0 0 8px rgba(61, 220, 151, 0.8);
 }
 
 .note {
   position: absolute;
-  left: 22%;
-  top: 22%;
-  width: 115%;
+  left: 10%;
+  top: 20%;
+  width: 80%;
   padding: 0.7em 0.5em 0.6em;
   display: grid;
   gap: 0.2em;
   font-family: var(--pixel);
-  font-size: clamp(8px, 0.7cqw, 11px);
+  font-size: min(0.5cqw, 9px);
   line-height: 1.15;
   text-align: left;
   color: #2c2414;
@@ -401,6 +399,14 @@ p {
 }
 
 /* coffee */
+
+.coffee-art {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
 
 .coffee .steam {
   position: absolute;
@@ -750,12 +756,12 @@ p {
 .ticket {
   position: absolute;
   z-index: 5;
-  left: 19.5%;
-  top: 42%;
-  width: min(280px, 22%);
-  min-width: 190px;
-  padding: 10px 12px;
-  font-size: 13px;
+  left: 26%;
+  top: 39%;
+  /* Ends left of JUNIOR's orb and its glow, which start around 44%. */
+  width: 16%;
+  padding: 0.8em 0.9em;
+  font-size: clamp(11px, 1.05cqw, 14px);
   line-height: 1.35;
   color: #2c2416;
   background: #f6e7c1;
@@ -767,9 +773,32 @@ p {
 .ticket b {
   display: block;
   margin-bottom: 4px;
+  padding-right: 1.4em;
   font-family: var(--pixel);
-  font-size: 10px;
+  font-size: 0.72em;
   letter-spacing: 0.06em;
+}
+
+.ticket-close {
+  position: absolute;
+  top: 2px;
+  right: 2px;
+  width: 1.9em;
+  height: 1.9em;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: #6b5a3a;
+  font-size: 1em;
+  line-height: 1;
+  cursor: pointer;
+  pointer-events: auto;
+}
+
+.ticket-close:hover,
+.ticket-close:focus-visible {
+  color: #2c2416;
+  background: rgba(44, 36, 22, 0.1);
 }
 
 .seat-line {

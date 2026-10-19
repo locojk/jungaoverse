@@ -66,6 +66,15 @@ export function persistShip(save: ShipSave) {
   }
 }
 
+/** Forgets everything the visitor has done, as if they had never boarded. */
+export function resetShip() {
+  try {
+    localStorage.removeItem(STORAGE_KEY);
+  } catch {
+    /* Nothing saved means nothing to forget. */
+  }
+}
+
 export function formatShipTime(date: Date) {
   return new Intl.DateTimeFormat("en-GB", {
     hour: "2-digit",

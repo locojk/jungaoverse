@@ -16,7 +16,7 @@ import {
   StickyNote,
 } from "./scene";
 import { Starfield } from "./Starfield";
-import { loadShip, persistShip, prefersReducedMotion, type ShipSave, type StationId } from "./ship";
+import { loadShip, persistShip, prefersReducedMotion, resetShip, type ShipSave, type StationId } from "./ship";
 
 interface UiMessage {
   id: string;
@@ -239,9 +239,8 @@ export function App() {
   }
 
   function replayIntro() {
-    setStation(null);
-    stopOrigin();
-    setIntroOpen(true);
+    resetShip();
+    window.location.reload();
   }
 
   function applySave(patch: (prev: ShipSave) => ShipSave) {
@@ -429,6 +428,7 @@ export function App() {
             <Hotspot box={bridgeMap.lab} label={label("lab")} align="end" onClick={() => openStation("lab")} />
 
             <Hotspot box={bridgeMap.coffee} className="coffee" ariaLabel="Coffee machine" onClick={onCoffee}>
+              <img className="coffee-art" src="/art/coffee.png" alt="" draggable={false} />
               <span className="steam" aria-hidden="true">
                 <i />
                 <i />
@@ -469,6 +469,17 @@ export function App() {
 
             {ticket && (
               <div className="ticket">
+                <button
+                  type="button"
+                  className="ticket-close"
+                  aria-label="Close fun fact"
+                  onClick={() => {
+                    window.clearTimeout(ticketTimer.current);
+                    setTicket(null);
+                  }}
+                >
+                  ✕
+                </button>
                 <b>COFFEE · FUN FACT</b>
                 {ticket}
               </div>

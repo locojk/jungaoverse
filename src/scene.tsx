@@ -19,7 +19,7 @@ export const bridgeMap = {
   log: { l: 11, t: 59, w: 20, h: 10 },
   galaxy: { l: 32.4, t: 56, w: 35.4, h: 8 },
   guestbook: { l: 68.6, t: 57, w: 20, h: 11 },
-  coffee: { l: 12.6, t: 50, w: 6, h: 10 },
+  coffee: { l: 19.53, t: 48.06, w: 5.47, h: 11.39 },
   boarder: { l: 43, t: 26, w: 14, h: 3.6 },
   captainChair: { l: 45.6, t: 70.8, w: 8.8, h: 27.5 },
   crewLeft: { l: 18, t: 75, w: 10.5, h: 25 },

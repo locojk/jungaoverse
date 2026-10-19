@@ -164,8 +164,9 @@ function LogPanel({ onReplayIntro }: { onReplayIntro: () => void }) {
         </article>
       ))}
       <button type="button" className="quiet" onClick={onReplayIntro}>
-        Replay JUNIOR's introduction
+        Start over as a first-time visitor
       </button>
+      <p className="note-line">Replays JUNIOR's introduction and re-locks the door. Your progress on this ship is forgotten.</p>
     </div>
   );
 }
