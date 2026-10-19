@@ -1,38 +1,37 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, type FormEvent } from "react";
 import {
-  commsAside,
-  crates,
-  engineering,
+  blackbox,
+  fill,
+  guestbook,
+  hoard,
+  junior,
+  lab,
   logs,
-  profile,
-  projects,
-  recentWork,
-  route,
-  stationInfo,
-  statusLabel,
-  type Project,
-  type ProjectStatus,
+  planets,
+  quarters,
+  radio,
+  site,
+  story,
+  viewport,
+  type Planet,
 } from "./content";
-import { LLM_SKETCH } from "./brain";
 import type { StationId } from "./ship";
-import type { WeatherState } from "./useWeather";
-
-function StatusPill({ status }: { status: ProjectStatus }) {
-  return <span className={`pill status-${status}`}>{statusLabel[status]}</span>;
-}
 
 export function PanelDialog({
   station,
-  weather,
   onClose,
-  onReplay,
+  onSneakOut,
+  onReplayIntro,
+  onGuestbookSubmit,
 }: {
   station: StationId;
-  weather: WeatherState;
   onClose: () => void;
-  onReplay: () => void;
+  onSneakOut: () => void;
+  onReplayIntro: () => void;
+  onGuestbookSubmit: () => void;
 }) {
-  const info = stationInfo[station];
+  const sneaky = station === "quarters";
+  const info = site.stations[station];
   const closeRef = useRef<HTMLButtonElement>(null);
 
   useEffect(() => {
@@ -48,115 +47,218 @@ export function PanelDialog({
 
   return (
     <div className="overlay" role="dialog" aria-modal="true" aria-labelledby="panel-title" onClick={onClose}>
-      <div className="sheet" onClick={(event) => event.stopPropagation()}>
+      <div className={`sheet sheet-${station}`} onClick={(event) => event.stopPropagation()}>
         <header className="sheet-head">
           <div>
-            <p className="eyebrow">{info.plain}</p>
+            <p className="eyebrow">{info.blurb}</p>
             <h2 id="panel-title">{info.title}</h2>
           </div>
-          <button type="button" className="close" ref={closeRef} onClick={onClose}>
-            Close
+          <button type="button" className="close" ref={closeRef} onClick={sneaky ? onSneakOut : onClose}>
+            {sneaky ? "Sneak out" : "Close"}
           </button>
         </header>
         <div className="sheet-body">
-          {station === "log" && <LogPanel onReplay={onReplay} />}
-          {station === "map" && <MapPanel />}
-          {station === "cargo" && <CargoPanel />}
-          {station === "recorder" && <RoutePanel />}
-          {station === "comms" && <CommsPanel />}
-          {station === "engine" && <EnginePanel />}
-          {station === "viewport" && <ViewportPanel weather={weather} />}
-          {station === "quarters" && <QuartersPanel />}
+          {station === "quarters" && <QuartersPanel onSneakOut={onSneakOut} />}
+          {station === "log" && <LogPanel onReplayIntro={onReplayIntro} />}
+          {station === "hoard" && <HoardPanel />}
+          {station === "galaxy" && <GalaxyPanel />}
+          {station === "blackbox" && <BlackBoxPanel />}
+          {station === "guestbook" && <GuestbookPanel onSubmit={onGuestbookSubmit} />}
+          {station === "lab" && <LabPanel />}
+          {station === "story" && <StoryPanel />}
+          {station === "radio" && <RadioPanel />}
+          {station === "viewport" && <ViewportPanel />}
         </div>
       </div>
     </div>
   );
 }
 
-function LogPanel({ onReplay }: { onReplay: () => void }) {
+function QuartersPanel({ onSneakOut }: { onSneakOut: () => void }) {
+  const [line, setLine] = useState({ id: 0, text: fill(quarters.junior.idle) });
+  const comment = (text: string) => setLine((current) => ({ id: current.id + 1, text }));
+
+  return (
+    <div className="quarters">
+      <div className="q-hammock">
+        <button type="button" className="hammock" onClick={() => comment(fill(quarters.junior.hammock))}>
+          <span className="sr-only">Inspect the hammock</span>
+          <span className="hammock-swing" aria-hidden="true">
+            <span className="rope left" />
+            <span className="rope right" />
+            <span className="sling">
+              <span className="dent" />
+            </span>
+          </span>
+          <span className="snack" aria-hidden="true" />
+          <span className="floor" aria-hidden="true" />
+        </button>
+      </div>
+
+      <MissingPoster />
+
+      <div className="q-signoff door-inside">
+        <p className="handwritten">{quarters.signoff}</p>
+        <button type="button" className="transmit" onClick={onSneakOut}>
+          Sneak out
+        </button>
+      </div>
+
+      <p className="q-junior" role="status" aria-live="polite">
+        <span>JUNIOR</span>
+        <q key={line.id}>{line.text}</q>
+      </p>
+    </div>
+  );
+}
+
+function MissingPoster() {
+  const { poster } = quarters;
+  return (
+    <section className="q-poster poster" aria-labelledby="missing-title">
+      <span className="tape" aria-hidden="true" />
+      <span className="rainbow-patch" title="Crew insignia" aria-hidden="true">
+        <i />
+        <i />
+        <i />
+        <i />
+        <i />
+        <i />
+      </span>
+      <h3 id="missing-title">{poster.header}</h3>
+      <figure className="mugshot">
+        {poster.photo ? <img src={poster.photo} alt="Jun" /> : <Doodle />}
+        <figcaption>{poster.photoCaption}</figcaption>
+      </figure>
+      <dl className="poster-fields">
+        {poster.fields.map((field) => (
+          <div key={field.label}>
+            <dt>{field.label}</dt>
+            <dd>{field.value}</dd>
+          </div>
+        ))}
+      </dl>
+    </section>
+  );
+}
+
+function Doodle() {
+  return (
+    <svg className="doodle" viewBox="0 0 120 120" role="img" aria-label="Doodle of a stick figure with a question mark">
+      <path d="M58 22c-17 1-27 14-25 29 2 14 14 22 27 21 15-1 25-12 24-27-1-14-12-24-26-23z" />
+      <path d="M50 44l1 3M66 43l0 4M51 58c5 3 10 3 15-1" />
+      <path d="M59 72l1 22M60 80l-15 9M60 80l16 7M60 94l-11 18M60 94l13 17" />
+      <path d="M92 18c3-6 13-6 14 1 1 6-7 7-8 14M98 42v1" className="qmark" />
+    </svg>
+  );
+}
+
+function LogPanel({ onReplayIntro }: { onReplayIntro: () => void }) {
   return (
     <div className="stack">
-      <p className="note-line">The first entry is the ship's own story. Later entries are sample plates.</p>
       {logs.map((entry) => (
-        <article key={entry.id} className="entry">
-          <p className="eyebrow">
-            Stardate {entry.stardate}
-            {entry.sample ? " · Sample" : ""}
-          </p>
+        <article key={`${entry.stardate}-${entry.title}`} className="entry">
+          <p className="eyebrow">Stardate {entry.stardate}</p>
           <h3>{entry.title}</h3>
           <p className="preserve">{entry.body}</p>
         </article>
       ))}
-      <button type="button" className="quiet" onClick={onReplay}>
+      <button type="button" className="quiet" onClick={onReplayIntro}>
         Replay JUNIOR's introduction
       </button>
     </div>
   );
 }
 
-function MapPanel() {
-  const [selected, setSelected] = useState(projects[0].id);
-  const world = projects.find((project) => project.id === selected) ?? projects[0];
+function HoardPanel() {
+  return (
+    <div className="crates">
+      {hoard.map((shelf) => (
+        <section key={shelf.id} className={`crate crate-${shelf.id}`}>
+          <p className="crate-label">{shelf.title}</p>
+          <ul>
+            {shelf.items.map((item) => (
+              <li key={item.name}>
+                <strong>{item.name}</strong>
+                <span>{item.note}</span>
+              </li>
+            ))}
+          </ul>
+        </section>
+      ))}
+    </div>
+  );
+}
+
+function GalaxyPanel() {
+  const [selected, setSelected] = useState(planets[0]?.id ?? "");
+  const world = planets.find((planet) => planet.id === selected) ?? planets[0];
+  if (!world) return <p className="note-line">No planets charted yet.</p>;
   return (
     <div className="stack">
-      <p className="note-line">
-        Landed is finished. Exploring is in progress. Planned Route has not left the dock. These worlds are sample plates.
-      </p>
       <StarChart selected={world} onSelect={setSelected} />
-      <div className="choice-row" role="list">
-        {projects.map((project) => (
+      <div className="choice-row">
+        {planets.map((planet) => (
           <button
-            key={project.id}
+            key={planet.id}
             type="button"
-            className={project.id === world.id ? "choice on" : "choice"}
-            onClick={() => setSelected(project.id)}
+            className={planet.id === world.id ? "choice on" : "choice"}
+            onClick={() => setSelected(planet.id)}
           >
-            <strong>{project.name}</strong>
-            <StatusPill status={project.status} />
+            <i className="dot" style={{ background: planet.color }} />
+            {planet.name}
           </button>
         ))}
       </div>
       <article className="entry">
-        <p className="eyebrow">
-          {world.code} · {world.name}
-        </p>
-        <h3>
-          {world.name} <StatusPill status={world.status} />
-        </h3>
-        <p>{world.summary}</p>
-        <p className="tags">{world.tags.join(" · ")}</p>
+        <p className="eyebrow">{world.kind}</p>
+        <h3>{world.name}</h3>
+        <p>{world.text}</p>
+        {world.photos.length > 0 && (
+          <div className="photos">
+            {world.photos.map((src, index) =>
+              src ? (
+                <img key={src} src={src} alt={`${world.name}, photo ${index + 1}`} loading="lazy" />
+              ) : (
+                <div key={index} className="photo-slot">
+                  photo
+                </div>
+              ),
+            )}
+          </div>
+        )}
       </article>
     </div>
   );
 }
 
-function StarChart({ selected, onSelect }: { selected: Project; onSelect: (id: string) => void }) {
-  const orbits: Record<Project["orbit"], [number, number]> = {
+function StarChart({ selected, onSelect }: { selected: Planet; onSelect: (id: string) => void }) {
+  const orbits: Record<Planet["orbit"], [number, number]> = {
     1: [148, 78],
     2: [228, 118],
     3: [308, 158],
   };
   return (
-    <svg className="star-chart" viewBox="0 0 720 400" role="img" aria-label="Star map of sample projects">
-      <ellipse cx="360" cy="200" rx="148" ry="78" className="orbit" />
-      <ellipse cx="360" cy="200" rx="228" ry="118" className="orbit" />
-      <ellipse cx="360" cy="200" rx="308" ry="158" className="orbit" />
-      <circle cx="360" cy="200" r="11" fill="#f4e3a4" />
-      <text x="360" y="228" textAnchor="middle" className="chart-label">
-        RIM
+    <svg className="star-chart" viewBox="0 0 720 400" role="img" aria-label="Map of Jun's interests as planets">
+      {Object.values(orbits).map(([rx, ry]) => (
+        <ellipse key={rx} cx="360" cy="200" rx={rx} ry={ry} className="orbit" />
+      ))}
+      <circle cx="360" cy="200" r="13" fill="#ffd27a" />
+      <text x="360" y="232" textAnchor="middle">
+        JUN
       </text>
-      {projects.map((project) => {
-        const [rx, ry] = orbits[project.orbit];
-        const angle = (project.angle * Math.PI) / 180;
+      {planets.map((planet) => {
+        const [rx, ry] = orbits[planet.orbit];
+        const angle = (planet.angle * Math.PI) / 180;
         const x = 360 + rx * Math.cos(angle);
         const y = 200 + ry * Math.sin(angle);
-        const active = project.id === selected.id;
+        const active = planet.id === selected.id;
         return (
-          <g key={project.id} className={`world world-${project.status}`} onClick={() => onSelect(project.id)}>
-            {active && <circle cx={x} cy={y} r="18" className="world-ring" />}
-            <circle cx={x} cy={y} r="9" />
-            <text x={x} y={y + 24} textAnchor="middle">
-              {project.code}
+          <g key={planet.id} className="world" onClick={() => onSelect(planet.id)}>
+            {active && <circle cx={x} cy={y} r="20" className="world-ring" />}
+            <circle cx={x} cy={y} r="11" fill={planet.color} />
+            <text x={x} y={y + 28} textAnchor="middle">
+              {planet.name}
             </text>
           </g>
         );
@@ -165,318 +267,157 @@ function StarChart({ selected, onSelect }: { selected: Project; onSelect: (id: s
   );
 }
 
-function CargoPanel() {
+function BlackBoxPanel() {
   return (
-    <div className="stack">
-      <p className="note-line">An illustrative manifest. Swap the crates for the real stack before launch.</p>
-      <div className="table-wrap">
-        <table>
-          <caption className="sr-only">Skills and tools, styled as cargo</caption>
-          <thead>
-            <tr>
-              <th>Crate</th>
-              <th>Qty</th>
-              <th>Status</th>
-            </tr>
-          </thead>
-          <tbody>
-            {crates.map((crate) => (
-              <tr key={crate.name}>
-                <td>{crate.name}</td>
-                <td>{crate.qty}</td>
-                <td>
-                  <span className={`cargo-status tone-${crate.tone}`}>
-                    <i />
-                    {crate.status}
-                  </span>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+    <div className="stack blackbox">
+      <p className="note-line">Flight data recorder. Contents may be embarrassing.</p>
+      <h3>Incidents</h3>
+      {blackbox.moments.map((moment) => (
+        <article key={moment.title} className="entry">
+          <strong>{moment.title}</strong>
+          <p>{moment.text}</p>
+        </article>
+      ))}
+      <h3>Most ridiculous things Jun has said</h3>
+      {blackbox.ridiculous.map((item) => (
+        <blockquote key={item.quote} className="recording">
+          <p>{item.quote}</p>
+          <footer>{item.context}</footer>
+        </blockquote>
+      ))}
+      <h3>Quotes</h3>
+      {blackbox.quotes.map((item) => (
+        <blockquote key={item.quote} className="recording">
+          <p>{item.quote}</p>
+          <footer>— {item.by}</footer>
+        </blockquote>
+      ))}
     </div>
   );
 }
 
-function RoutePanel() {
+function GuestbookPanel({ onSubmit }: { onSubmit: () => void }) {
+  const [sent, setSent] = useState(false);
+
+  function submit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    setSent(true);
+    onSubmit();
+  }
+
   return (
-    <div className="stack">
-      <p className="note-line">The ship's route. Ports below are sample berths, except the current one: Ottawa.</p>
-      <ol className="route">
-        {route.map((stop) => (
-          <li key={stop.id}>
-            <span className="port" aria-hidden="true" />
-            <div>
-              <p className="eyebrow">
-                {stop.kind} · {stop.years}
-              </p>
-              <h3>{stop.place}</h3>
-              <p>{stop.detail}</p>
-            </div>
+    <div className="stack guestbook">
+      <ul className="messages">
+        {guestbook.map((entry) => (
+          <li key={`${entry.name}-${entry.date}`}>
+            <p className="eyebrow">
+              {entry.name} · {entry.date}
+            </p>
+            <p>{entry.message}</p>
           </li>
         ))}
-      </ol>
-    </div>
-  );
-}
-
-function CommsPanel() {
-  return (
-    <div className="stack">
-      <a className="signal" href={`mailto:${profile.email}?subject=${encodeURIComponent("Signal from the Jungaoverse")}`}>
-        Send a Signal to the Former Captain
-      </a>
-      <blockquote className="junior-says">
-        {commsAside}
-        <footer>JUNIOR</footer>
-      </blockquote>
-      <ul className="channels">
-        <li>
-          <span>Email</span>
-          <a href={`mailto:${profile.email}`}>{profile.email}</a>
-        </li>
-        <li>
-          <span>LinkedIn</span>
-          {profile.linkedinUrl ? (
-            <a href={profile.linkedinUrl} rel="noreferrer">
-              Open channel
-            </a>
-          ) : (
-            <em>Not filed yet</em>
-          )}
-        </li>
-        <li>
-          <span>GitHub</span>
-          {profile.githubUrl ? (
-            <a href={profile.githubUrl} rel="noreferrer">
-              Open channel
-            </a>
-          ) : (
-            <em>Not filed yet</em>
-          )}
-        </li>
       </ul>
-      <p className="note-line">Placeholder channels. File the real ones in the ship's content record before launch.</p>
-    </div>
-  );
-}
-
-function EnginePanel() {
-  return (
-    <div className="stack">
-      <p>
-        This deck is the straight version. The bridge is a personal site for {profile.name}, {profile.role}, in{" "}
-        {profile.location}. The fiction is the interface. The engineering is ordinary on purpose: a static client, one
-        content record, and a captain you can replace without repainting the ship.
-      </p>
-      <div className="arch" aria-label="Architecture">
-        <div className="arch-row">
-          <div className="node">Visitor</div>
-          <span className="arrow" aria-hidden="true">
-            →
-          </span>
-          <div className="node">Bridge UI</div>
-          <span className="arrow" aria-hidden="true">
-            →
-          </span>
-          <div className="node">content.ts</div>
-        </div>
-        <div className="arch-row">
-          <div className="node accent">JUNIOR brain</div>
-          <span className="arrow" aria-hidden="true">
-            →
-          </span>
-          <div className="node">Scripted brain</div>
-          <span className="arrow" aria-hidden="true">
-            →
-          </span>
-          <div className="node dim">LLM uplink, staged</div>
-        </div>
-        <div className="arch-row">
-          <div className="node">Viewport</div>
-          <span className="arrow" aria-hidden="true">
-            →
-          </span>
-          <div className="node">Open-Meteo · Ottawa</div>
-        </div>
-      </div>
-      <h3>Decisions</h3>
-      <div className="stack tight">
-        {engineering.decisions.map((decision) => (
-          <article key={decision.title} className="entry">
-            <h3>{decision.title}</h3>
-            <p>{decision.body}</p>
-          </article>
-        ))}
-      </div>
-      <h3>What is actually running</h3>
-      <ul className="pills">
-        {engineering.stack.map((item) => (
-          <li key={item}>{item}</li>
-        ))}
-      </ul>
-      <p>
-        No model is called at runtime. The personality is scripted so the ship works offline and stays in character.
-        The scripted captain knows the shape of the ship, not the contents of every crate — he points, he does not
-        recite a biography that has not been written. To connect a model, keep the UI and replace{" "}
-        <code>createJuniorBrain()</code>.
-      </p>
-      <pre>
-        <code>{LLM_SKETCH}</code>
-      </pre>
-      <p className="note-line">
-        Local run: npm install, then npm run dev. Edit src/content.ts. Replace public/resume.pdf.
-      </p>
-    </div>
-  );
-}
-
-function ViewportPanel({ weather }: { weather: WeatherState }) {
-  return (
-    <div className="stack">
-      <div className="wx">
-        {weather.status === "live" ? (
-          <>
-            <p className="temp">{Math.round(weather.tempC ?? 0)}°</p>
-            <div>
-              <h3>{weather.label}</h3>
-              <p>
-                Wind {weather.windKmh === undefined ? "—" : Math.round(weather.windKmh)} km/h · Ottawa, Earth
-              </p>
-            </div>
-          </>
-        ) : weather.status === "loading" ? (
-          <p>Reading the Ottawa sky…</p>
-        ) : (
-          <div>
-            <h3>Sensors offline</h3>
-            <p>The viewport could not reach Open-Meteo. The rest of the ship is fine.</p>
-          </div>
+      <form className="sign" onSubmit={submit}>
+        <h3>Leave a message</h3>
+        <label>
+          <span>Name</span>
+          <input name="name" maxLength={40} autoComplete="off" placeholder="Space traveler" />
+        </label>
+        <label>
+          <span>Message</span>
+          <textarea name="message" maxLength={280} rows={3} placeholder="Say hi to the crew…" />
+        </label>
+        <button type="submit" className="transmit">
+          Transmit
+        </button>
+        {sent && (
+          <blockquote className="junior-says" role="status">
+            {junior.guestbookReply}
+            <footer>JUNIOR</footer>
+          </blockquote>
         )}
-      </div>
-      <h3>Recent work</h3>
-      <div className="stack tight">
-        {recentWork.map((item) => (
-          <article key={item.title} className="entry">
-            <h3>{item.title}</h3>
-            <p>{item.detail}</p>
-          </article>
-        ))}
-      </div>
+      </form>
     </div>
   );
 }
 
-function QuartersPanel() {
+function LabPanel() {
   return (
-    <div className="quarters">
-      <div className="hammock" aria-hidden="true">
-        <span className="rope left" />
-        <span className="rope right" />
-        <span className="sling" />
-        <span className="pillow" />
-      </div>
-      <p className="eyebrow">Personal</p>
-      <h3>The door was the hard part.</h3>
-      <p>The hammock is still here. Jun is not — he never came back from the snack run. His personal page has not been filed yet.</p>
-      <div className="empty-slot">Personal content — not yet aboard.</div>
+    <div className="lab-grid">
+      {lab.map((item) => (
+        <article key={item.name} className={item.status === "Exploded" ? "lab-item exploded" : "lab-item"}>
+          <span className={`lab-tag tag-${item.status.toLowerCase().replace(/\s+/g, "-")}`}>{item.status}</span>
+          <h3>{item.name}</h3>
+          <p>{item.text}</p>
+          {item.link && (
+            <a href={item.link} target="_blank" rel="noreferrer">
+              Try it →
+            </a>
+          )}
+        </article>
+      ))}
     </div>
   );
 }
 
-export function Dossier({ onClose }: { onClose: () => void }) {
-  useEffect(() => {
-    const previous = document.activeElement as HTMLElement | null;
-    const prevOverflow = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
-    return () => {
-      document.body.style.overflow = prevOverflow;
-      previous?.focus?.();
-    };
-  }, []);
-
+function StoryPanel() {
+  const [nodeId, setNodeId] = useState(story.start);
+  const node = story.nodes[nodeId] ?? story.nodes[story.start];
   return (
-    <div className="overlay" role="dialog" aria-modal="true" aria-labelledby="dossier-title" onClick={onClose}>
-      <article className="dossier-sheet" onClick={(event) => event.stopPropagation()}>
-        <p className="stamp-line">Declassified dossier</p>
-        <div className="identity">
-          <p className="eyebrow">
-            {profile.role} · {profile.location}
-          </p>
-          <h2 id="dossier-title">{profile.name}</h2>
-          <p>{profile.domain}</p>
-        </div>
-        <p className="sample-banner">
-          Sample record. Posts, projects, skills, and the route are plates waiting for the real filing. The hammock
-          story is the ship's fiction. The career is not invented to fill the gap.
-        </p>
-        <div className="paper-actions">
-          <button type="button" className="paper-btn" onClick={onClose}>
-            Return to the bridge
+    <div className="stack story">
+      <p className="eyebrow">{story.title}</p>
+      <p className="story-text">{node.text}</p>
+      <div className="story-choices">
+        {node.choices.map((choice) => (
+          <button key={choice.label} type="button" className="chip" onClick={() => setNodeId(choice.to)}>
+            ▶ {choice.label}
           </button>
-          <a className="paper-btn ghost" href="/resume.pdf" download="Jun-Gao-Resume.pdf">
-            Download résumé
-          </a>
-          <a className="paper-btn ghost" href={`mailto:${profile.email}`}>
-            {profile.email}
-          </a>
-        </div>
+        ))}
+      </div>
+    </div>
+  );
+}
 
-        <h3>Summary</h3>
-        <p>{profile.summary}</p>
+function RadioPanel() {
+  return (
+    <div className="radio">
+      <div className="eq" aria-hidden="true">
+        {Array.from({ length: 12 }, (_, index) => (
+          <i key={index} style={{ animationDelay: `${(index * 137) % 900}ms` }} />
+        ))}
+      </div>
+      <p className="eyebrow">Now playing · on repeat</p>
+      <h3>{radio.title}</h3>
+      <p className="artist">{radio.artist}</p>
+      <p className="note-line">Played {radio.plays} times this week. JUNIOR has stopped counting. JUNIOR has not stopped counting.</p>
+      <p>{radio.note}</p>
+      {radio.link && (
+        <a href={radio.link} target="_blank" rel="noreferrer">
+          Listen →
+        </a>
+      )}
+    </div>
+  );
+}
 
-        <h3>Projects</h3>
-        {projects.map((project) => (
-          <div key={project.id} className="doc-row">
-            <div>
-              <strong>{project.name}</strong>
-              <p>{project.summary}</p>
-            </div>
-            <StatusPill status={project.status} />
+function ViewportPanel() {
+  const rows = [
+    ["Weather", viewport.weather],
+    ["Jun is", viewport.upTo],
+    ["Mood", viewport.mood],
+    ["Listening", viewport.listening],
+  ];
+  return (
+    <div className="stack">
+      <p className="eyebrow">Home port · {site.homePort}</p>
+      <dl className="status-grid">
+        {rows.map(([label, value]) => (
+          <div key={label}>
+            <dt>{label}</dt>
+            <dd>{value}</dd>
           </div>
         ))}
-
-        <h3>Experience</h3>
-        {route.map((stop) => (
-          <div key={stop.id} className="doc-row">
-            <div>
-              <strong>{stop.place}</strong>
-              <p>{stop.detail}</p>
-            </div>
-            <span>{stop.years}</span>
-          </div>
-        ))}
-
-        <h3>Skills</h3>
-        <ul className="plain-list">
-          {crates.map((crate) => (
-            <li key={crate.name}>
-              {crate.name} {crate.qty} — {crate.status}
-            </li>
-          ))}
-        </ul>
-
-        <h3>Writing</h3>
-        {logs.map((entry) => (
-          <div key={entry.id} className="doc-row">
-            <div>
-              <strong>{entry.title}</strong>
-              <p>Stardate {entry.stardate}</p>
-            </div>
-          </div>
-        ))}
-
-        <h3>Contact</h3>
-        <ul className="plain-list">
-          <li>
-            <a href={`mailto:${profile.email}`}>{profile.email}</a>
-          </li>
-          <li>LinkedIn — {profile.linkedinUrl || "not filed yet"}</li>
-          <li>GitHub — {profile.githubUrl || "not filed yet"}</li>
-        </ul>
-        <p className="aside">{commsAside}</p>
-      </article>
+      </dl>
     </div>
   );
 }

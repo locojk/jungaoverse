@@ -1,0 +1,28 @@
+{
+  "title": "Placeholder: Chapter 1",
+  "start": "start",
+  "nodes": {
+    "start": {
+      "text": "Placeholder story opening. The ship drifts somewhere past Byte Town Station. Something blinks on the console.",
+      "choices": [
+        { "label": "Check the console", "to": "console" },
+        { "label": "Ignore it and get a snack", "to": "snack" }
+      ]
+    },
+    "console": {
+      "text": "Placeholder. The console shows a message nobody expected.",
+      "choices": [
+        { "label": "Answer it", "to": "end" },
+        { "label": "Go back", "to": "start" }
+      ]
+    },
+    "snack": {
+      "text": "Placeholder. You head to the cargo bay. You have a bad feeling about this.",
+      "choices": [{ "label": "Keep going", "to": "end" }]
+    },
+    "end": {
+      "text": "Placeholder. To be continued…",
+      "choices": [{ "label": "Start over", "to": "start" }]
+    }
+  }
+}

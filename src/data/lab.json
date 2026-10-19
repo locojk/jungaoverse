@@ -1,0 +1,20 @@
+[
+  {
+    "name": "Placeholder Toy",
+    "status": "Works",
+    "text": "A small demo Jun built for fun.",
+    "link": ""
+  },
+  {
+    "name": "Half-Baked Gadget",
+    "status": "Kinda works",
+    "text": "Placeholder. Works on Tuesdays.",
+    "link": ""
+  },
+  {
+    "name": "Failed Experiment",
+    "status": "Exploded",
+    "text": "Placeholder. It did not survive. We learned a lot.",
+    "link": ""
+  }
+]

@@ -1,0 +1,19 @@
+{
+  "name": "Jun",
+  "domain": "jungaoverse.com",
+  "homePort": "Byte Town Station",
+  "shipDay": 1008619990129,
+  "boarderNumber": 427,
+  "stations": {
+    "quarters": { "label": "Captain's Quarters", "title": "Captain's Quarters", "blurb": "Abandoned · break-in in progress" },
+    "log": { "label": "Captain's Log", "title": "Captain's Log", "blurb": "Random thoughts" },
+    "hoard": { "label": "Hoard Bay", "title": "Hoard Bay", "blurb": "What he's hoarding" },
+    "galaxy": { "label": "Interest Galaxy", "title": "Interest Galaxy", "blurb": "Hobbies, as planets" },
+    "blackbox": { "label": "Black Box", "title": "Black Box", "blurb": "Embarrassing records" },
+    "guestbook": { "label": "Visitor Logbook", "title": "Visitor Logbook", "blurb": "Sign the guestbook" },
+    "lab": { "label": "Lab", "title": "The Lab", "blurb": "Toys and explosions" },
+    "story": { "label": "Entertainment", "title": "Entertainment Terminal", "blurb": "A playable story" },
+    "radio": { "label": "Ship's Radio", "title": "Ship's Radio", "blurb": "On repeat" },
+    "viewport": { "label": "Viewport", "title": "Viewport Status", "blurb": "Byte Town right now" }
+  }
+}

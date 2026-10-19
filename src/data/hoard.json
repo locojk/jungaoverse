@@ -1,0 +1,33 @@
+[
+  {
+    "id": "watching",
+    "title": "Watching",
+    "items": [
+      { "name": "Placeholder show", "note": "Halfway through season 2." },
+      { "name": "Placeholder movie", "note": "Watched it twice. Will watch again." }
+    ]
+  },
+  {
+    "id": "reading",
+    "title": "Reading",
+    "items": [
+      { "name": "Placeholder book", "note": "Stuck on chapter 7 for a month." },
+      { "name": "Placeholder comic", "note": "Re-reading. Again." }
+    ]
+  },
+  {
+    "id": "playing",
+    "title": "Playing",
+    "items": [
+      { "name": "Placeholder game", "note": "One more run. Just one." }
+    ]
+  },
+  {
+    "id": "wishlist",
+    "title": "Want to buy (but haven't)",
+    "items": [
+      { "name": "Placeholder gadget", "note": "In the cart for 84 days." },
+      { "name": "Placeholder chair", "note": "JUNIOR says no." }
+    ]
+  }
+]

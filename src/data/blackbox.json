@@ -1,0 +1,13 @@
+{
+  "moments": [
+    { "title": "Placeholder incident", "text": "An embarrassing moment, told briefly." },
+    { "title": "The other incident", "text": "Placeholder. We don't talk about this one. Except here." }
+  ],
+  "quotes": [
+    { "quote": "Placeholder quote Jun likes.", "by": "Someone" }
+  ],
+  "ridiculous": [
+    { "quote": "Placeholder: the most ridiculous thing Jun has ever said.", "context": "Said with total confidence." },
+    { "quote": "Placeholder: \"I'll just grab a quick snack.\"", "context": "Day 3. Never came back." }
+  ]
+}

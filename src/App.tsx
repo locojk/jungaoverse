@@ -1,17 +1,11 @@
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { createJuniorBrain, type BrainReply, type ChatTurn } from "./brain";
-import {
-  chairLines,
-  coffeeFacts,
-  consoleOrder,
-  crewChairLines,
-  profile,
-  SHIP_DAY,
-  stationInfo,
-} from "./content";
+import { consoleOrder, facts, fill, junior, quarters, shipDay, site } from "./content";
 import { DestructJunior, Intro } from "./Intro";
-import { Dossier, PanelDialog } from "./Panels";
+import { Keypad } from "./Keypad";
+import { PanelDialog } from "./Panels";
 import {
+  BoarderCounter,
   bridgeMap,
   DestructSwitch,
   Hotspot,
@@ -22,14 +16,7 @@ import {
   StickyNote,
 } from "./scene";
 import { Starfield } from "./Starfield";
-import {
-  loadShip,
-  persistShip,
-  prefersReducedMotion,
-  type ShipSave,
-  type StationId,
-} from "./ship";
-import { useOttawaWeather } from "./useWeather";
+import { loadShip, persistShip, prefersReducedMotion, type ShipSave, type StationId } from "./ship";
 
 interface UiMessage {
   id: string;
@@ -44,7 +31,7 @@ function uid() {
   return `m${messageSerial}`;
 }
 
-function shuffle(items: string[]) {
+function shuffle<T>(items: T[]) {
   const copy = [...items];
   for (let index = copy.length - 1; index > 0; index -= 1) {
     const swap = Math.floor(Math.random() * (index + 1));
@@ -53,66 +40,88 @@ function shuffle(items: string[]) {
   return copy;
 }
 
-const TOUR_LINE =
-  "Orders complete. You have the embarrassing history and the engine room. If you still need the former captain, send a signal from comms. Wherever he is, it reaches him.";
+function randomOf<T>(items: T[]) {
+  return items[Math.floor(Math.random() * items.length)];
+}
 
-const PROMPTS = ["What does Jun build?", "Where is Jun?", "What is Jun good at?", "Who are you?"];
+const IDLE_MS = 25_000;
+const MAX_IDLE_LINES = 4;
+const ORB_COOLDOWN_MS = 12_000;
+const ORIGIN_GAP_MS = 1_600;
+const TYPE_MS = 22;
 
-const DOOR_LINE = "I have the access code — but you'll have to chat with me for a bit first.";
+/** Reveals JUNIOR's newest line one character at a time, like a game dialogue box. */
+function TypeLine({ text, onTick, onDone }: { text: string; onTick: () => void; onDone: () => void }) {
+  const [count, setCount] = useState(() => (prefersReducedMotion() ? text.length : 0));
+  const done = count >= text.length;
+
+  useEffect(() => {
+    if (done) {
+      onDone();
+      return;
+    }
+    const id = window.setTimeout(() => setCount((current) => current + 1), TYPE_MS);
+    onTick();
+    return () => window.clearTimeout(id);
+  }, [count, done]);
+
+  return (
+    <>
+      {text.slice(0, count)}
+      {!done && <i className="caret" aria-hidden="true" />}
+    </>
+  );
+}
 
 export function App() {
   const boot = useState(() => loadShip())[0];
   const [save, setSave] = useState<ShipSave>(boot);
   const saveRef = useRef(save);
-  const [introOpen, setIntroOpen] = useState(() => {
-    const query = new URLSearchParams(window.location.search);
-    if (query.has("dossier")) return false;
-    if (query.has("replay")) return true;
-    return !boot.introDone;
-  });
-  const [dossierOpen, setDossierOpen] = useState(
-    () => new URLSearchParams(window.location.search).has("dossier"),
-  );
+  const [introOpen, setIntroOpen] = useState(() => !boot.originSeen);
   const [station, setStation] = useState<StationId | null>(null);
-  const [confirmDestruct, setConfirmDestruct] = useState(false);
   const [coverOpen, setCoverOpen] = useState(false);
+  const [countdown, setCountdown] = useState<number | null>(null);
+  const [resumeOpen, setResumeOpen] = useState(false);
+  const [keypadOpen, setKeypadOpen] = useState(false);
   const [draft, setDraft] = useState("");
   const [pending, setPending] = useState(false);
-  const [speaking, setSpeaking] = useState(false);
   const [expanded, setExpanded] = useState(false);
   const [ticket, setTicket] = useState<string | null>(null);
   const [seatLine, setSeatLine] = useState<{ text: string; at: "captain" | "left" | "right" } | null>(null);
   const [doorShake, setDoorShake] = useState(false);
-  const [alarmKey, setAlarmKey] = useState(0);
   const [asked, setAsked] = useState<string[]>([]);
-  const [messages, setMessages] = useState<UiMessage[]>(() => [
-    {
-      id: "hello",
-      role: "junior",
-      text: boot.introDone
-        ? "You're back. He isn't. Touch anything — except my chair."
-        : 'Welcome aboard. Jun said "you fly better than I do," went to the cargo bay for a snack, and never came back. So now I run the ship. Touch anything — except my chair.',
-    },
-  ]);
+  const [orbMood, setOrbMood] = useState(0);
+  const [messages, setMessages] = useState<UiMessage[]>(() =>
+    boot.originSeen ? [{ id: uid(), role: "junior", text: randomOf(junior.welcomeBack) }] : [],
+  );
+  const [typingId, setTypingId] = useState<string | null>(() => messages[0]?.id ?? null);
 
   const brain = useRef(createJuniorBrain());
   const sending = useRef(false);
   const factBag = useRef<string[]>([]);
+  const idleBag = useRef<string[]>([]);
   const chairStep = useRef(0);
   const crewStep = useRef(0);
+  const orbClicks = useRef(0);
+  const orbTimer = useRef(0);
+  const originQueue = useRef<string[]>(boot.originSeen ? [] : [...junior.origin]);
+  const originTimer = useRef(0);
+  const lastActivity = useRef(Date.now());
+  const idleCount = useRef(0);
+  const busy = useRef(false);
   const panRef = useRef<HTMLDivElement>(null);
   const transcriptRef = useRef<HTMLDivElement>(null);
   const ticketTimer = useRef(0);
   const seatTimer = useRef(0);
   const shakeTimer = useRef(0);
 
-  const weather = useOttawaWeather();
-  const covered = introOpen || station !== null || dossierOpen || confirmDestruct;
+  const covered = introOpen || station !== null || countdown !== null || resumeOpen || keypadOpen;
   const visitorTurns = messages.filter((message) => message.role === "visitor").length;
+  busy.current = covered || pending || typingId !== null || originQueue.current.length > 0;
   const orders = [
-    { label: "Speak with JUNIOR", done: save.talked },
-    { label: "Unlock his old quarters", done: save.doorUnlocked },
-    { label: "Inspect the engine room", done: save.visited.includes("engine") },
+    { label: "Talk to JUNIOR", done: save.talked },
+    { label: "Get into his quarters", done: save.doorUnlocked },
+    { label: "Find the big red button", done: save.destructed },
   ];
 
   useLayoutEffect(() => {
@@ -128,42 +137,111 @@ export function App() {
   }, []);
 
   useEffect(() => {
-    const last = messages[messages.length - 1];
-    if (!last || last.role !== "junior") return;
-    setSpeaking(true);
-    const delay = prefersReducedMotion() ? 0 : Math.min(2400, 600 + last.text.length * 10);
-    const id = window.setTimeout(() => setSpeaking(false), delay);
-    return () => window.clearTimeout(id);
-  }, [messages]);
-
-  useEffect(() => {
-    const box = transcriptRef.current;
-    if (box) box.scrollTop = box.scrollHeight;
+    scrollTranscript();
   }, [messages, pending, expanded]);
 
   useEffect(() => {
     function onKey(event: KeyboardEvent) {
       if (event.key !== "Escape") return;
-      if (confirmDestruct) {
-        setConfirmDestruct(false);
-        return;
-      }
-      if (station) {
-        setStation(null);
-        return;
-      }
-      if (dossierOpen) {
-        setDossierOpen(false);
-        return;
-      }
-      if (introOpen) board("bridge");
+      if (resumeOpen) setResumeOpen(false);
+      else if (keypadOpen) setKeypadOpen(false);
+      else if (station) setStation(null);
+      else if (introOpen) board("bridge");
     }
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
   });
 
+  useEffect(() => {
+    const wake = () => {
+      lastActivity.current = Date.now();
+      idleCount.current = 0;
+    };
+    const events = ["pointerdown", "keydown", "wheel", "touchstart"] as const;
+    events.forEach((name) => window.addEventListener(name, wake, { passive: true }));
+    const id = window.setInterval(() => {
+      if (busy.current || idleCount.current >= MAX_IDLE_LINES) return;
+      if (Date.now() - lastActivity.current < IDLE_MS) return;
+      if (idleBag.current.length === 0) idleBag.current = shuffle([...junior.idle, ...junior.hints]);
+      idleCount.current += 1;
+      say(idleBag.current.pop() ?? junior.idle[0]);
+    }, 3000);
+    return () => {
+      events.forEach((name) => window.removeEventListener(name, wake));
+      window.clearInterval(id);
+    };
+  }, []);
+
+  useEffect(() => {
+    if (countdown === null) return;
+    if (countdown > 0) {
+      const id = window.setTimeout(() => setCountdown(countdown - 1), 1000);
+      return () => window.clearTimeout(id);
+    }
+    const id = window.setTimeout(() => {
+      setCountdown(null);
+      setResumeOpen(true);
+      applySave((prev) => ({ ...prev, destructed: true }));
+    }, 900);
+    return () => window.clearTimeout(id);
+  }, [countdown]);
+
+  useEffect(
+    () => () => {
+      [originTimer, orbTimer, ticketTimer, seatTimer, shakeTimer].forEach((timer) => window.clearTimeout(timer.current));
+    },
+    [],
+  );
+
+  function scrollTranscript() {
+    const box = transcriptRef.current;
+    if (box) box.scrollTop = box.scrollHeight;
+  }
+
   function pushJunior(text: string, open?: StationId) {
-    setMessages((current) => [...current, { id: uid(), role: "junior", text, open }]);
+    const id = uid();
+    lastActivity.current = Date.now();
+    setMessages((current) => [...current, { id, role: "junior", text: fill(text), open }]);
+    setTypingId(id);
+  }
+
+  function stopOrigin() {
+    if (originQueue.current.length === 0) return;
+    originQueue.current = [];
+    window.clearTimeout(originTimer.current);
+    applySave((prev) => ({ ...prev, originSeen: true }));
+  }
+
+  /** JUNIOR reacts to the visitor. Interrupts the origin story if it is still playing. */
+  function say(text: string, open?: StationId) {
+    stopOrigin();
+    pushJunior(text, open);
+  }
+
+  function onLineTyped() {
+    setTypingId(null);
+    window.clearTimeout(originTimer.current);
+    if (originQueue.current.length === 0) return;
+    originTimer.current = window.setTimeout(() => {
+      const next = originQueue.current.shift();
+      if (next === undefined) return;
+      pushJunior(next);
+      if (originQueue.current.length === 0) applySave((prev) => ({ ...prev, originSeen: true }));
+    }, ORIGIN_GAP_MS);
+  }
+
+  /** Leaves the intro screen and starts the Captain's Log in the dialogue box. */
+  function board(dest: "bridge" | "chat") {
+    setIntroOpen(false);
+    const first = originQueue.current.shift();
+    if (first !== undefined) pushJunior(first);
+    if (dest === "chat") window.setTimeout(focusChat, 60);
+  }
+
+  function replayIntro() {
+    setStation(null);
+    stopOrigin();
+    setIntroOpen(true);
   }
 
   function applySave(patch: (prev: ShipSave) => ShipSave) {
@@ -171,15 +249,14 @@ export function App() {
     let next = patch(prev);
     if (next === prev) return;
     let cheer = false;
-    const complete = next.talked && next.doorUnlocked && next.visited.includes("engine");
-    if (complete && !next.tourAck) {
+    if (next.talked && next.doorUnlocked && next.destructed && !next.tourAck) {
       next = { ...next, tourAck: true };
       cheer = true;
     }
     saveRef.current = next;
     persistShip(next);
     setSave(next);
-    if (cheer) pushJunior(TOUR_LINE);
+    if (cheer) window.setTimeout(() => say(junior.tourComplete), 1200);
   }
 
   function openStation(id: StationId) {
@@ -193,20 +270,15 @@ export function App() {
     document.getElementById("junior-input")?.focus({ preventScroll: true });
   }
 
-  function board(dest: "bridge" | "chat" | "dossier") {
-    setIntroOpen(false);
-    applySave((prev) => ({ ...prev, introDone: true }));
-    if (dest === "dossier") setDossierOpen(true);
-    if (dest === "chat") window.setTimeout(focusChat, 60);
-  }
-
   async function send(text: string) {
     const trimmed = text.trim().slice(0, 500);
     if (!trimmed || sending.current) return;
     sending.current = true;
+    stopOrigin();
     const history: ChatTurn[] = messages.map(({ role, text: prior }) => ({ role, text: prior }));
     const ctx = {
       userTurns: visitorTurns + 1,
+      codeGiven: saveRef.current.codeGiven,
       doorUnlocked: saveRef.current.doorUnlocked,
     };
     setMessages((current) => [...current, { id: uid(), role: "visitor", text: trimmed }]);
@@ -215,14 +287,9 @@ export function App() {
     try {
       const reply: BrainReply = await brain.current.reply(trimmed, ctx, history);
       pushJunior(reply.text, reply.open);
-      applySave((prev) => ({
-        ...prev,
-        talked: true,
-        doorUnlocked: prev.doorUnlocked || Boolean(reply.grantKey),
-      }));
+      applySave((prev) => ({ ...prev, talked: true, codeGiven: prev.codeGiven || Boolean(reply.revealsCode) }));
     } catch {
-      pushJunior("My uplink coughed. Ask me again — the scripted half of me is still at the helm.");
-      applySave((prev) => ({ ...prev, talked: true }));
+      pushJunior(junior.error);
     } finally {
       sending.current = false;
       setPending(false);
@@ -242,63 +309,80 @@ export function App() {
     setDoorShake(true);
     window.clearTimeout(shakeTimer.current);
     shakeTimer.current = window.setTimeout(() => setDoorShake(false), 480);
-    setMessages((current) => {
-      const last = current[current.length - 1];
-      if (last?.role === "junior" && last.text === DOOR_LINE) return current;
-      return [...current, { id: uid(), role: "junior", text: DOOR_LINE }];
-    });
+    setStation(null);
+    setKeypadOpen(true);
+  }
+
+  function unlockDoor() {
+    setKeypadOpen(false);
+    applySave((prev) => ({ ...prev, codeGiven: true, doorUnlocked: true }));
+    openStation("quarters");
+    say(junior.door.granted);
+  }
+
+  function askForCode() {
+    setKeypadOpen(false);
+    const last = messages[messages.length - 1];
+    if (last?.text !== junior.door.locked) say(junior.door.locked);
     focusChat();
   }
 
   function onCoffee() {
-    if (factBag.current.length === 0) factBag.current = shuffle(coffeeFacts);
-    const fact = factBag.current.pop() ?? coffeeFacts[0];
+    if (factBag.current.length === 0) factBag.current = shuffle(facts);
+    const fact = factBag.current.pop() ?? facts[0];
     setTicket(fact);
     window.clearTimeout(ticketTimer.current);
     ticketTimer.current = window.setTimeout(() => setTicket(null), 7000);
-    pushJunior(fact);
+    say(fact);
   }
 
   function showSeat(text: string, at: "captain" | "left" | "right") {
     setSeatLine({ text, at });
     window.clearTimeout(seatTimer.current);
     seatTimer.current = window.setTimeout(() => setSeatLine(null), 3200);
-    pushJunior(text);
+    say(text);
   }
 
   function onCaptainChair() {
-    const line = chairLines[Math.min(chairStep.current, chairLines.length - 1)];
+    const line = junior.captainChair[Math.min(chairStep.current, junior.captainChair.length - 1)];
     chairStep.current += 1;
     showSeat(line, "captain");
   }
 
   function onCrewChair(side: "left" | "right") {
-    const line = crewChairLines[crewStep.current % crewChairLines.length];
+    const line = junior.crewChairs[crewStep.current % junior.crewChairs.length];
     crewStep.current += 1;
     showSeat(line, side);
   }
 
+  function onOrb() {
+    const step = orbClicks.current;
+    orbClicks.current += 1;
+    setOrbMood(orbClicks.current);
+    window.clearTimeout(orbTimer.current);
+    orbTimer.current = window.setTimeout(() => {
+      orbClicks.current = 0;
+      setOrbMood(0);
+    }, ORB_COOLDOWN_MS);
+    say(junior.orbClicks[Math.min(step, junior.orbClicks.length - 1)]);
+  }
+
   function pressBoom() {
     setCoverOpen(false);
-    setAlarmKey((value) => value + 1);
-    setConfirmDestruct(true);
+    stopOrigin();
+    setCountdown(junior.destruct.countdownFrom);
   }
 
-  function resumeDownloaded() {
-    setConfirmDestruct(false);
-    pushJunior("Résumé delivered. The ship is still in one piece. You're welcome.");
-  }
-
-  const latestJunior = [...messages].reverse().find((message) => message.role === "junior");
-  const prompts = PROMPTS.filter((prompt) => !asked.includes(prompt)).slice(0, 2);
-  const seen = (id: StationId) => save.visited.includes(id);
+  const prompts = junior.prompts.filter((prompt) => !asked.includes(prompt)).slice(0, 2);
   const seatBox =
     seatLine?.at === "left" ? bridgeMap.crewLeft : seatLine?.at === "right" ? bridgeMap.crewRight : bridgeMap.captainChair;
+  const latestJunior = [...messages].reverse().find((message) => message.role === "junior");
+  const label = (id: StationId) => site.stations[id].label;
 
   return (
     <>
-      <h1 className="sr-only">{profile.name}, AI engineer — the Jungaoverse</h1>
-      <div className="stage" inert={covered ? true : undefined}>
+      <h1 className="sr-only">The Jungaoverse — {site.name}'s spaceship bridge</h1>
+      <div className={countdown !== null ? "stage quake" : "stage"} inert={covered ? true : undefined}>
         <div className="pan" ref={panRef}>
           <div className="scene">
             <Starfield />
@@ -306,134 +390,86 @@ export function App() {
             <div className="planet-anchor">
               <Planet />
             </div>
-            <button
-              type="button"
-              className="glass-hit"
-              aria-label="Forward window. Open live status."
+            <Hotspot
+              box={{ l: 0, t: 0, w: 100, h: 27 }}
+              label={label("viewport")}
+              align="center"
+              className="glass"
               onClick={() => openStation("viewport")}
             />
             <img className="bridge-art" src="/art/bridge.png" alt="" draggable={false} />
 
-            <Hotspot
-              box={bridgeMap.cargo}
-              label="CARGO MANIFEST"
-              sub="skills"
-              seen={seen("cargo")}
-              onClick={() => openStation("cargo")}
-            />
-            <Hotspot
-              box={bridgeMap.recorder}
-              label="FLIGHT RECORDER"
-              sub="timeline"
-              align="end"
-              seen={seen("recorder")}
-              onClick={() => openStation("recorder")}
-            />
+            <BoarderCounter number={site.boarderNumber} onClick={() => say(fill(junior.boarder, { n: site.boarderNumber }))} />
+
+            <Hotspot box={bridgeMap.hoard} label={label("hoard")} onClick={() => openStation("hoard")} />
+            <Hotspot box={bridgeMap.radio} label={label("radio")} onClick={() => openStation("radio")}>
+              <span className="radio-eq" aria-hidden="true">
+                <i />
+                <i />
+                <i />
+              </span>
+            </Hotspot>
+            <Hotspot box={bridgeMap.story} label={label("story")} align="center" onClick={() => openStation("story")} />
+            <Hotspot box={bridgeMap.blackbox} label={label("blackbox")} align="end" onClick={() => openStation("blackbox")} />
+
             <Hotspot
               box={bridgeMap.quarters}
-              label="JUN'S OLD QUARTERS"
-              sub={save.doorUnlocked ? "open" : "locked"}
+              label={label("quarters")}
               className={`door ${doorShake ? "shake" : ""} ${save.doorUnlocked ? "unlocked" : "locked"}`}
-              seen={save.doorUnlocked}
               ariaLabel={
                 save.doorUnlocked
-                  ? "Jun's old quarters, unlocked"
-                  : "Jun's old quarters, locked. His old note on the door: do not disturb, currently slacking off."
+                  ? "Captain's quarters, unlocked"
+                  : "Captain's quarters, locked. A note on the door: do not disturb, currently slacking off."
               }
               onClick={onDoor}
             >
               <span className="lamp" aria-hidden="true" />
               <StickyNote />
-              {save.doorUnlocked && (
-                <span className="stamp" aria-hidden="true">
-                  OPEN
-                </span>
-              )}
             </Hotspot>
-            <Hotspot
-              box={bridgeMap.engine}
-              label="ENGINE ROOM"
-              sub="how it's built"
-              align="end"
-              seen={seen("engine")}
-              onClick={() => openStation("engine")}
-            />
-            <Hotspot
-              box={bridgeMap.coffee}
-              label="COFFEE"
-              className="coffee"
-              ariaLabel="Coffee machine. Dispense a fact about Jun."
-              onClick={onCoffee}
-            >
+            <Hotspot box={bridgeMap.lab} label={label("lab")} align="end" onClick={() => openStation("lab")} />
+
+            <Hotspot box={bridgeMap.coffee} className="coffee" ariaLabel="Coffee machine" onClick={onCoffee}>
               <span className="steam" aria-hidden="true">
                 <i />
                 <i />
                 <i />
               </span>
             </Hotspot>
+            <Hotspot box={bridgeMap.log} label={label("log")} tag="bottom" onClick={() => openStation("log")} />
             <Hotspot
-              box={bridgeMap.log}
-              label="CAPTAIN'S LOG"
-              sub="posts"
-              tag="bottom"
-              seen={seen("log")}
-              onClick={() => openStation("log")}
-            />
-            <Hotspot
-              box={bridgeMap.map}
-              label="STAR MAP"
-              sub="projects"
+              box={bridgeMap.galaxy}
+              label={label("galaxy")}
               tag="bottom"
               align="center"
-              seen={seen("map")}
-              onClick={() => openStation("map")}
+              onClick={() => openStation("galaxy")}
             />
             <Hotspot
-              box={bridgeMap.comms}
-              label="COMMS"
-              sub="signal the former captain"
+              box={bridgeMap.guestbook}
+              label={label("guestbook")}
               tag="bottom"
               align="end"
-              seen={seen("comms")}
-              onClick={() => openStation("comms")}
+              onClick={() => openStation("guestbook")}
             />
-            <Hotspot
-              box={bridgeMap.captainChair}
-              className="chair"
-              ariaLabel="Captain's chair"
-              onClick={onCaptainChair}
-            />
+
+            <Hotspot box={bridgeMap.captainChair} className="chair" ariaLabel="Captain's chair" onClick={onCaptainChair} />
             <Hotspot box={bridgeMap.crewLeft} className="chair" ariaLabel="Crew chair" onClick={() => onCrewChair("left")} />
-            <Hotspot
-              box={bridgeMap.crewRight}
-              className="chair"
-              ariaLabel="Crew chair"
-              onClick={() => onCrewChair("right")}
-            />
+            <Hotspot box={bridgeMap.crewRight} className="chair" ariaLabel="Crew chair" onClick={() => onCrewChair("right")} />
 
             <div className="destruct-table">
               <div className="table-top">
-                <DestructSwitch
-                  open={coverOpen}
-                  onToggle={() => setCoverOpen((open) => !open)}
-                  onPress={pressBoom}
-                />
+                <DestructSwitch open={coverOpen} onToggle={() => setCoverOpen((open) => !open)} onPress={pressBoom} />
               </div>
               <div className="table-front" aria-hidden="true">
-                <span className="tag-red">SELF-DESTRUCT</span>
-                <span className="warn-note">
-                  NEVER TOUCH!!!!!!
-                  <small>seriously. — Jun</small>
-                </span>
+                <span className="tag-red">DO NOT PRESS</span>
               </div>
               <div className="table-foot" aria-hidden="true" />
             </div>
 
-            <Orb speaking={speaking || pending} onClick={focusChat} />
+            <Orb speaking={typingId !== null || pending} mood={orbMood} onClick={onOrb} />
 
             {ticket && (
               <div className="ticket">
-                <b>COFFEE · FACT</b>
+                <b>COFFEE · FUN FACT</b>
                 {ticket}
               </div>
             )}
@@ -450,12 +486,12 @@ export function App() {
             <strong>JUNGAOVERSE</strong>
             <span>
               BRIDGE · DECK 01
-              <span className="clock"> · <ShipClock /></span>
+              <span className="clock">
+                {" "}
+                · <ShipClock port={site.homePort} />
+              </span>
             </span>
           </div>
-          <button type="button" className="skip" onClick={() => setDossierOpen(true)}>
-            Skip the adventure — view résumé →
-          </button>
         </header>
 
         <p className="pan-hint" aria-hidden="true">
@@ -465,9 +501,7 @@ export function App() {
         <section className={expanded ? "dialog expanded" : "dialog"} id="junior-chat" aria-label="JUNIOR">
           <div className="dialog-head">
             <strong>JUNIOR</strong>
-            <span className="rank">
-              ACTING CAPTAIN · LOG DAY {SHIP_DAY}
-            </span>
+            <span className="rank">ACTING CAPTAIN · LOG DAY {shipDay}</span>
             <ol className="orders" aria-label="Orders">
               {orders.map((order) => (
                 <li key={order.label} className={order.done ? "done" : ""} title={order.label}>
@@ -477,12 +511,7 @@ export function App() {
                 </li>
               ))}
             </ol>
-            <button
-              type="button"
-              className="expand"
-              aria-expanded={expanded}
-              onClick={() => setExpanded((value) => !value)}
-            >
+            <button type="button" className="expand" aria-expanded={expanded} onClick={() => setExpanded((value) => !value)}>
               {expanded ? "Collapse" : "History"}
             </button>
           </div>
@@ -490,10 +519,24 @@ export function App() {
             {messages.map((message) => (
               <div key={message.id} className={`line ${message.role}`}>
                 {message.role === "visitor" && <span className="who">YOU ›</span>}
-                <p>{message.text}</p>
-                {message.open && (message.open !== "quarters" || save.doorUnlocked) && (
-                  <button type="button" className="linkish" onClick={() => openStation(message.open as StationId)}>
-                    ▶ Open {stationInfo[message.open].title}
+                <p>
+                  {message.id === typingId ? (
+                    <TypeLine text={message.text} onTick={scrollTranscript} onDone={onLineTyped} />
+                  ) : (
+                    message.text
+                  )}
+                </p>
+                {message.open && message.id !== typingId && (
+                  <button
+                    type="button"
+                    className="linkish"
+                    onClick={() =>
+                      message.open === "quarters" && !save.doorUnlocked ? onDoor() : openStation(message.open as StationId)
+                    }
+                  >
+                    {message.open === "quarters" && !save.doorUnlocked
+                      ? "▶ Go to the door keypad"
+                      : `▶ Open ${site.stations[message.open].title}`}
                   </button>
                 )}
               </div>
@@ -540,38 +583,60 @@ export function App() {
             <button
               key={id}
               type="button"
-              className={seen(id) ? "station seen" : "station"}
+              className={save.visited.includes(id) ? "station seen" : "station"}
               onClick={() => openStation(id)}
             >
-              <strong>{stationInfo[id].short}</strong>
-              <small>{stationInfo[id].plain}</small>
+              <strong>{site.stations[id].label}</strong>
+              <small>{site.stations[id].blurb}</small>
             </button>
           ))}
         </nav>
       </div>
 
       <div className="sr-only" aria-live="polite">
-        {latestJunior?.text}
+        {latestJunior && latestJunior.id !== typingId ? latestJunior.text : ""}
       </div>
 
-      {alarmKey > 0 && <div key={alarmKey} className="alarm" />}
+      {countdown !== null && (
+        <div className="alarm" role="alert">
+          <p>{junior.destruct.alarm}</p>
+          <b>{countdown > 0 ? countdown : "0"}</b>
+        </div>
+      )}
 
-      {introOpen && <Intro onBoard={() => board("bridge")} onTalk={() => board("chat")} onDossier={() => board("dossier")} />}
+      {introOpen && <Intro onBoard={() => board("bridge")} onTalk={() => board("chat")} />}
+
+      {keypadOpen && (
+        <Keypad
+          codeGiven={save.codeGiven}
+          onUnlock={unlockDoor}
+          onAskJunior={askForCode}
+          onClose={() => setKeypadOpen(false)}
+        />
+      )}
+
+      {resumeOpen && (
+        <DestructJunior
+          onDownload={() => {
+            setResumeOpen(false);
+            say(junior.destruct.delivered);
+          }}
+          onClose={() => setResumeOpen(false)}
+        />
+      )}
+
       {station && (
         <PanelDialog
           key={station}
           station={station}
-          weather={weather}
           onClose={() => setStation(null)}
-          onReplay={() => {
+          onSneakOut={() => {
             setStation(null);
-            setIntroOpen(true);
+            say(quarters.junior.sneakOut);
           }}
+          onReplayIntro={replayIntro}
+          onGuestbookSubmit={() => say(junior.guestbookReply)}
         />
-      )}
-      {dossierOpen && <Dossier onClose={() => setDossierOpen(false)} />}
-      {confirmDestruct && (
-        <DestructJunior onDownload={resumeDownloaded} onClose={() => setConfirmDestruct(false)} />
       )}
     </>
   );

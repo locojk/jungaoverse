@@ -1,0 +1,42 @@
+[
+  {
+    "id": "hobby-1",
+    "name": "Placeholder Hobby",
+    "kind": "hobby",
+    "color": "#ff9a5a",
+    "orbit": 1,
+    "angle": 200,
+    "text": "A couple of sentences about this hobby. When it started, why it stuck.",
+    "photos": ["", ""]
+  },
+  {
+    "id": "hobby-2",
+    "name": "Another Hobby",
+    "kind": "hobby",
+    "color": "#62d6c8",
+    "orbit": 2,
+    "angle": 30,
+    "text": "Placeholder. A hobby Jun picks up every few months and then forgets about.",
+    "photos": [""]
+  },
+  {
+    "id": "hobby-3",
+    "name": "Third Hobby",
+    "kind": "hobby",
+    "color": "#c58bff",
+    "orbit": 2,
+    "angle": 160,
+    "text": "Placeholder. Something Jun would talk about for an hour if you let him.",
+    "photos": []
+  },
+  {
+    "id": "side-1",
+    "name": "Fun Side Project",
+    "kind": "side project",
+    "color": "#ffd166",
+    "orbit": 3,
+    "angle": 320,
+    "text": "Placeholder. A fun side project. Doesn't need to be useful.",
+    "photos": [""]
+  }
+]

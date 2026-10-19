@@ -1,30 +1,36 @@
 export const STATIONS = [
-  "log",
-  "map",
-  "cargo",
-  "recorder",
-  "comms",
-  "engine",
-  "viewport",
   "quarters",
+  "log",
+  "hoard",
+  "galaxy",
+  "blackbox",
+  "guestbook",
+  "lab",
+  "story",
+  "radio",
+  "viewport",
 ] as const;
 
 export type StationId = (typeof STATIONS)[number];
 
 export interface ShipSave {
-  introDone: boolean;
+  originSeen: boolean;
+  codeGiven: boolean;
   doorUnlocked: boolean;
   talked: boolean;
+  destructed: boolean;
   tourAck: boolean;
   visited: StationId[];
 }
 
-const STORAGE_KEY = "jungaoverse.v1";
+const STORAGE_KEY = "jungaoverse.v2";
 
 const blankSave = (): ShipSave => ({
-  introDone: false,
+  originSeen: false,
+  codeGiven: false,
   doorUnlocked: false,
   talked: false,
+  destructed: false,
   tourAck: false,
   visited: [],
 });
@@ -39,9 +45,11 @@ export function loadShip(): ShipSave {
     if (!raw) return blankSave();
     const data = JSON.parse(raw) as Partial<ShipSave>;
     return {
-      introDone: Boolean(data.introDone),
+      originSeen: Boolean(data.originSeen),
+      codeGiven: Boolean(data.codeGiven || data.doorUnlocked),
       doorUnlocked: Boolean(data.doorUnlocked),
       talked: Boolean(data.talked),
+      destructed: Boolean(data.destructed),
       tourAck: Boolean(data.tourAck),
       visited: Array.isArray(data.visited) ? data.visited.filter(isStation) : [],
     };

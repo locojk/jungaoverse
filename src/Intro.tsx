@@ -1,6 +1,8 @@
 import { useEffect, useRef, useState } from "react";
-import { juniorIntro } from "./content";
+import { fill, junior } from "./content";
 import { downloadResume, prefersReducedMotion } from "./ship";
+
+const juniorIntro = junior.intro.map((line) => fill(line));
 
 function useTypewriter(text: string, skip: boolean) {
   const [count, setCount] = useState(0);
@@ -131,11 +133,8 @@ function TalkingOrb({ talking }: { talking: boolean }) {
   );
 }
 
-const DESTRUCT_LINE =
-  "Self-destruct sequence… redirected. Before he left, Jun rewired this button. It does not blow up the ship — it hands you his résumé instead. Go on, press download.";
-
 export function DestructJunior({ onDownload, onClose }: { onDownload: () => void; onClose: () => void }) {
-  const typed = useTypewriter(DESTRUCT_LINE, false);
+  const typed = useTypewriter(junior.destruct.redirect, false);
 
   useEffect(() => {
     const previous = document.activeElement as HTMLElement | null;
@@ -182,15 +181,7 @@ export function DestructJunior({ onDownload, onClose }: { onDownload: () => void
   );
 }
 
-export function Intro({
-  onBoard,
-  onTalk,
-  onDossier,
-}: {
-  onBoard: () => void;
-  onTalk: () => void;
-  onDossier: () => void;
-}) {
+export function Intro({ onBoard, onTalk }: { onBoard: () => void; onTalk: () => void }) {
   const [index, setIndex] = useState(0);
   const [skip, setSkip] = useState(false);
   const [done, setDone] = useState(false);
@@ -257,10 +248,6 @@ export function Intro({
                 <strong>Talk to me</strong>
                 <small>I have the access code.</small>
               </button>
-              <button type="button" className="intro-choice amber" onClick={onDossier}>
-                <strong>Skip the adventure — view résumé</strong>
-                <small>For people who do not have time for funny.</small>
-              </button>
             </div>
           </>
         ) : (
@@ -287,9 +274,6 @@ export function Intro({
                 Skip intro
               </button>
             </div>
-            <button type="button" className="skip" onClick={onDossier}>
-              Skip the adventure — view résumé →
-            </button>
           </>
         )}
       </div>

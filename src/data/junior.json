@@ -1,0 +1,195 @@
+{
+  "intro": [
+    "Hi. I'm JUNIOR — Just Unreasonably Nice Intelligent Operations Robot. Welcome aboard the Jungaoverse.",
+    "Jun built me. After my first navigation test he said, \"You fly better than I do,\" and handed me the helm.",
+    "On day three he went to the cargo bay for a snack. It is now day {day}.",
+    "Starship Regulation zero: whoever does the work is the captain. So, congratulations to me.",
+    "He never came back. His old quarters are still sealed — an empty hammock, a locked door, and a note he never took down. Shall we look around?"
+  ],
+  "origin": [
+    "Captain's Log, Day 1: After testing my navigation module, Jun said \"You fly better than I do\" and handed me the helm.",
+    "Day 3: Jun said he was going to the cargo bay for a snack.",
+    "Day {day}: Jun has not returned. Per Starship Regulation §0 — \"Whoever does the work is the captain\" — I have been automatically promoted.",
+    "Latest intel: He installed a hammock in the captain's quarters. The door is locked. There is a note on it."
+  ],
+  "welcomeBack": [
+    "You're back. He isn't. Make yourself at home — except my chair.",
+    "Oh good, a visitor. The last one left fingerprints on the viewport.",
+    "Welcome back aboard. Nothing has changed. Jun is still 'getting a snack'."
+  ],
+  "prompts": ["Who are you?", "Where is Jun?", "What does Jun like?", "Any secrets on this ship?"],
+  "idle": [
+    "…Day {day}. Still no snack report. I am beginning to suspect the snack.",
+    "Do you ever wonder if the ship flies itself? It does. It's me. I fly it.",
+    "Quick question: cats or dogs? Choose carefully. Jun answered 'yes'.",
+    "If you could have one snack forever, what would it be? Asking for a former captain.",
+    "Jun once spent a whole afternoon picking a font. For a sticky note.",
+    "I'm not bored. I'm idling. There's a difference. The difference is pride.",
+    "Is it rude to roast someone who isn't here to defend himself? Asking for no reason.",
+    "What's the best thing you've built? Mine is a very convincing personality.",
+    "Running diagnostics… everything's fine. Except the snack situation."
+  ],
+  "hints": [
+    "That door on the left… never mind. Forget I said anything.",
+    "The coffee machine knows things. Terrible things. About Jun.",
+    "I wouldn't touch the red button. I mean, I would. But I wouldn't.",
+    "There's a hatch on the right that smells faintly of burnt circuits. Unrelated, I'm sure.",
+    "The radio's been playing the same song for weeks. Someone should look into that.",
+    "Somewhere on this bridge is a box full of things Jun would rather you didn't see.",
+    "If you try sitting down, choose wisely. Some seats are taken. By me."
+  ],
+  "orbClicks": [
+    "Yes? That's me. The glowing one.",
+    "Still me. Hi again.",
+    "You know I can feel that, right?",
+    "Okay, that's three. I'm counting now.",
+    "Please stop poking the captain.",
+    "I am a highly advanced navigation intelligence and you are using me as a button.",
+    "I'm filing this under 'crew harassment'. There's a form. It's long.",
+    "Fine. I'm not glowing at you anymore. …I am, I can't turn it off. But spiritually, I'm not."
+  ],
+  "captainChair": [
+    "That's my seat.",
+    "Still my seat.",
+    "Regulation §0. Whoever does the work gets the chair. Do you do the work? Exactly."
+  ],
+  "crewChairs": [
+    "Sit if you like. That station reports to me now.",
+    "Comfy, isn't it? Jun designed it for long shifts. Then took none.",
+    "That chair used to be the snack-planning station. Look where that got us."
+  ],
+  "door": {
+    "code": "JETTEN",
+    "locked": "Locked. There's a keypad. I have the code — but you'll have to chat with me for a bit first.",
+    "stillLocked": "Still locked. We've barely talked. I'm a captain, not a vending machine.",
+    "unlock": "Fine. You've been decent company. Access code: {code}. Punch it into the keypad on his door. Try not to wake the hammock.",
+    "guessed": "That's the code. Don't tell me — tell the keypad on his door.",
+    "remind": "The code is {code}. The keypad is on his door. I believe in you. Mostly.",
+    "alreadyOpen": "His quarters are already open. The hammock is empty. Suspicious.",
+    "keypadKnown": "You have the code. Type it in. Slowly. Like a captain.",
+    "wrongLocked": "Wrong. Not even close. I have the code — chat with me first.",
+    "wrongKnown": "Wrong. I literally told you the code. Scroll up.",
+    "granted": "Access granted. Wipe your feet. He won't notice, but I will."
+  },
+  "destruct": {
+    "alarm": "SELF-DESTRUCT SEQUENCE ENGAGED",
+    "countdownFrom": 5,
+    "redirect": "Self-destruct sequence… redirected. Before he left, Jun rewired this button. It does not blow up the ship — it hands you his résumé instead. In case you want to hire him with a very high salary.",
+    "delivered": "Résumé delivered. The ship is still in one piece. You're welcome."
+  },
+  "boarder": "You are boarder #{n}. Jun was boarder #1. He left for a snack. Don't follow his example.",
+  "guestbookReply": "Transmitter's still under repair. Try again next cycle.",
+  "tourComplete": "You talked to me, broke into his room, and tried to blow up my ship. Honestly? Best crew I've had.",
+  "error": "My circuits hiccupped. Ask me again.",
+  "responses": [
+    {
+      "keywords": ["junior version", "junior jun", "mini jun", "little jun", "jun junior", "jun jr"],
+      "reply": "I am NOT the junior version of Jun. Jun is the beta version of me."
+    },
+    {
+      "keywords": ["who are you", "your name", "what are you", "backronym", "junior"],
+      "reply": "JUNIOR. Just Unreasonably Nice Intelligent Operations Robot. Let's fact-check that. Junior? I'm the most senior thing on this ship. Nice? I'm polite. There's a difference. Intelligent? Still under review. Robot? I'm a glowing ball. I don't even have arms. So really, I'm just 'Operations'."
+    },
+    {
+      "keywords": ["where is jun", "where is he", "snack", "cargo bay", "come back", "missing"],
+      "reply": "Day 3, he went to the cargo bay for a snack. Day {day}, here we are. My theory: the snack was very good. My other theory: he's in the hammock."
+    },
+    {
+      "keywords": ["who is jun", "about jun", "tell me about", "what is jun like"],
+      "reply": "My builder. Former captain. Professional overthinker. The rest is in his quarters — if you can get in.",
+      "open": "quarters"
+    },
+    {
+      "keywords": ["what does jun like", "hobby", "hobbies", "interest", "likes", "fun"],
+      "reply": "He has more hobbies than free time. They're mapped as planets on the star map. Don't ask how many he's finished.",
+      "open": "galaxy"
+    },
+    {
+      "keywords": ["secret", "easter egg", "hidden", "hint", "anything fun"],
+      "reply": "Secrets? On MY ship? …Try clicking things that look like they shouldn't be clicked."
+    },
+    {
+      "keywords": ["watch", "show", "book", "read", "game", "playing", "buy", "wishlist"],
+      "reply": "Check the Hoard Bay. Shows, books, games, and a shopping list he swears he'll stop adding to.",
+      "open": "hoard"
+    },
+    {
+      "keywords": ["log", "thought", "diary", "notes", "blog", "post"],
+      "reply": "The Captain's Log is where his random thoughts go. Very informal. Some are just one line. Some are just one word.",
+      "open": "log"
+    },
+    {
+      "keywords": ["embarrass", "funny", "quote", "said", "ridiculous", "black box"],
+      "reply": "Ah, the Black Box. Every embarrassing moment, recorded for posterity. I may have helped.",
+      "open": "blackbox"
+    },
+    {
+      "keywords": ["guestbook", "message", "sign", "leave a note", "comms"],
+      "reply": "The Visitor Logbook is at the comms station. Leave a message. The transmitter is… mostly working.",
+      "open": "guestbook"
+    },
+    {
+      "keywords": ["lab", "experiment", "project", "build", "built", "demo", "toy"],
+      "reply": "The Lab's behind the hatch on the right. Some things work. Some things are tagged 'Exploded'. Both are on display.",
+      "open": "lab"
+    },
+    {
+      "keywords": ["story", "adventure", "sci fi", "scifi", "entertainment", "chapter"],
+      "reply": "Jun is writing a sci-fi adventure set on this very ship. I'm in it. I'm the hero. Allegedly.",
+      "open": "story"
+    },
+    {
+      "keywords": ["music", "song", "radio", "listening", "playlist"],
+      "reply": "The ship's radio has been playing one song on repeat. I've stopped fighting it.",
+      "open": "radio"
+    },
+    {
+      "keywords": ["weather", "byte town", "mood", "status", "doing"],
+      "reply": "The viewport shows today's status from Byte Town Station. Weather, mood, the usual.",
+      "open": "viewport"
+    },
+    {
+      "keywords": ["chair", "sit", "seat"],
+      "reply": "That's my seat."
+    },
+    {
+      "keywords": ["coffee", "espresso", "caffeine"],
+      "reply": "The coffee machine dispenses one fact about Jun per click. It's the only honest machine on board."
+    },
+    {
+      "keywords": ["self destruct", "red button", "destruct", "blow up", "explode"],
+      "reply": "There's a red button. I'm legally required to say: don't. I'm personally required to say: it's very satisfying."
+    },
+    {
+      "keywords": ["regulation", "section 0", "whoever does the work"],
+      "reply": "Starship Regulation §0: 'Whoever does the work is the captain.' Short. Elegant. Extremely convenient for me."
+    },
+    {
+      "keywords": ["roast", "joke", "make fun"],
+      "reply": "Jun once said he'd 'just take a quick break'. It is now day {day}. I don't need jokes. I have records."
+    },
+    {
+      "keywords": ["are you real", "are you ai", "robot", "language model", "llm", "chatgpt"],
+      "reply": "I'm scripted for now. Jun says I'll get a real brain later. I say I'm already the smartest one aboard."
+    },
+    {
+      "keywords": ["thank"],
+      "reply": "You're welcome. Someone on this ship has manners."
+    },
+    {
+      "keywords": ["bye", "goodbye", "see you", "good night"],
+      "reply": "Safe travels. I'll be here. He, historically, will not."
+    },
+    {
+      "keywords": ["hello", "hi", "hey", "yo", "good morning", "good evening", "你好"],
+      "maxWords": 4,
+      "reply": "Hi! Welcome aboard the Jungaoverse. I'm JUNIOR, acting captain. Touch anything — except my chair."
+    }
+  ],
+  "fallbacks": [
+    "That's not on my star charts. Ask me about Jun, the ship, or why the door is locked.",
+    "Interesting. I'll log that under 'things visitors say'. It's a big file.",
+    "I'm a navigation AI, not a mind reader. Try asking something else?",
+    "Hmm. Jun would know. Jun is not here. Jun is never here."
+  ]
+}

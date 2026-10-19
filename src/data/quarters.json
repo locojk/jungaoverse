@@ -1,0 +1,47 @@
+{
+  "junior": {
+    "idle": "Investigation in progress. Touch nothing. Or everything. I can't stop you.",
+    "hammock": "Still warm. No, it isn't. It's been {day} days.",
+    "sneakOut": "Smooth. Not that anyone was here to notice."
+  },
+  "poster": {
+    "header": "MISSING: FORMER CAPTAIN",
+    "photo": "",
+    "photoCaption": "No picture available. He never sent one.",
+    "fields": [
+      {
+        "label": "Name",
+        "value": "Jun"
+      },
+      {
+        "label": "Last seen",
+        "value": "Day 3, walking away from the bridge"
+      },
+      {
+        "label": "Home port",
+        "value": "BJ"
+      },
+      {
+        "label": "Languages",
+        "value": "Chinese, English, Python"
+      },
+      {
+        "label": "Specialty",
+        "value": "Building things that replace him"
+      },
+      {
+        "label": "Known weakness",
+        "value": "Small talk: not supported."
+      },
+      {
+        "label": "Most-said line",
+        "value": "\"What's the point of doing this?\""
+      },
+      {
+        "label": "Gender",
+        "value": "The reverse of a Thessia native"
+      }
+    ]
+  },
+  "signoff": "If you're reading this, I'm not here. Don't touch the hammock. — Jun"
+}
