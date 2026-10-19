@@ -880,7 +880,7 @@ p {
 }
 
 .transcript {
-  max-height: 68px;
+  height: calc(3 * 1.5em + 2 * 6px);
   overflow-y: auto;
   display: grid;
   gap: 6px;
@@ -894,7 +894,7 @@ p {
 }
 
 .dialog.expanded .transcript {
-  max-height: min(46dvh, 420px);
+  height: min(46dvh, 420px);
 }
 
 .line p {
@@ -1856,12 +1856,8 @@ code { font-family: var(--mono); }
     display: none;
   }
 
-  .transcript {
-    max-height: 170px;
-  }
-
   .dialog.expanded .transcript {
-    max-height: 60dvh;
+    height: 60dvh;
   }
 
   .chip {
