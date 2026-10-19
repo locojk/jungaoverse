@@ -1775,11 +1775,13 @@ code { font-family: var(--mono); }
     inset: auto;
     flex: none;
     height: var(--pan-h);
+    align-items: flex-start;
     justify-content: flex-start;
+    overflow: auto;
   }
 
   .scene {
-    width: max(100%, calc(var(--pan-h) * 16 / 9));
+    width: max(100%, calc(var(--pan-h) * 1.3 * 16 / 9));
   }
 
   .hud-top {

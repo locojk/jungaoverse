@@ -120,6 +120,7 @@ export function App() {
     if (!pan) return;
     const center = () => {
       pan.scrollLeft = (pan.scrollWidth - pan.clientWidth) / 2;
+      pan.scrollTop = (pan.scrollHeight - pan.clientHeight) / 2;
     };
     center();
     window.addEventListener("resize", center);
@@ -458,7 +459,7 @@ export function App() {
         </header>
 
         <p className="pan-hint" aria-hidden="true">
-          ← swipe to look around the bridge →
+          ← swipe any direction to look around the bridge →
         </p>
 
         <section className={expanded ? "dialog expanded" : "dialog"} id="junior-chat" aria-label="JUNIOR">
