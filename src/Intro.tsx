@@ -28,26 +28,61 @@ function useTypewriter(text: string, skip: boolean) {
 
 const canSpeak = typeof window !== "undefined" && "speechSynthesis" in window;
 
-function pickVoice() {
-  const voices = window.speechSynthesis.getVoices().filter((voice) => voice.lang.startsWith("en"));
-  return (
-    voices.find((voice) => /Daniel|Google UK English Male|Aaron|Arthur|Alex|Fred|Male/i.test(voice.name)) ??
-    voices[0] ??
-    null
-  );
+const MALE = /\b(Andrew|Brian|Guy|Ryan|Christopher|Eric|Davis|Roger|Steffan|Thomas|Daniel|Evan|Nathan|Tom|Aaron|Arthur|Oliver|Rishi|Gordon|Lee|Male)\b/i;
+const NATURAL = /Natural|Neural|Online|Premium|Enhanced/i;
+/** macOS novelty voices and the old robotic ones. "Junior" is one of them, sadly. */
+const NOVELTY = /\b(Albert|Bad News|Bahh|Bells|Boing|Bubbles|Cellos|Deranged|Fred|Good News|Hysterical|Jester|Junior|Organ|Pipe Organ|Ralph|Superstar|Trinoids|Whisper|Wobble|Zarvox|Grandpa|Grandma|Eddy|Reed|Rocko|Sandy|Shelley|Flo)\b/i;
+
+function scoreVoice(voice: SpeechSynthesisVoice) {
+  if (!voice.lang.toLowerCase().startsWith("en") || NOVELTY.test(voice.name)) return -1;
+  let score = 0;
+  if (MALE.test(voice.name)) score += 10;
+  if (NATURAL.test(voice.name)) score += 6;
+  if (/Google UK English Male/i.test(voice.name)) score += 4;
+  if (/en-(GB|US)/i.test(voice.lang)) score += 1;
+  return score;
 }
+
+function pickVoice() {
+  let best: SpeechSynthesisVoice | null = null;
+  let bestScore = -1;
+  for (const voice of window.speechSynthesis.getVoices()) {
+    const score = scoreVoice(voice);
+    if (score > bestScore) [best, bestScore] = [voice, score];
+  }
+  return best;
+}
+
+/** Browsers load voices lazily; the list is empty until `voiceschanged` fires. */
+const voicesReady: Promise<void> = !canSpeak
+  ? Promise.resolve()
+  : new Promise((resolve) => {
+      if (window.speechSynthesis.getVoices().length > 0) return resolve();
+      window.speechSynthesis.addEventListener("voiceschanged", () => resolve(), { once: true });
+      window.setTimeout(resolve, 1500);
+    });
 
 function speak(text: string, onEnd: () => void) {
   const synth = window.speechSynthesis;
   synth.cancel();
-  const utterance = new SpeechSynthesisUtterance(text.replace("—", ","));
-  const voice = pickVoice();
-  if (voice) utterance.voice = voice;
-  utterance.rate = 1.04;
-  utterance.pitch = 0.92;
-  utterance.onend = onEnd;
-  utterance.onerror = onEnd;
-  synth.speak(utterance);
+  let cancelled = false;
+  void voicesReady.then(() => {
+    if (cancelled) return;
+    const utterance = new SpeechSynthesisUtterance(text.replace(/\s*—\s*/g, ", "));
+    const voice = pickVoice();
+    if (voice) {
+      utterance.voice = voice;
+      utterance.lang = voice.lang;
+    }
+    utterance.rate = 1;
+    utterance.pitch = 1;
+    utterance.onend = onEnd;
+    utterance.onerror = onEnd;
+    synth.speak(utterance);
+  });
+  return () => {
+    cancelled = true;
+  };
 }
 
 /** Siri-style layered sine waves; amplitude eases toward `active`. */
@@ -194,7 +229,7 @@ export function Intro({ onBoard, onTalk }: { onBoard: () => void; onTalk: () => 
   useEffect(() => {
     if (!voiceOn || done || !canSpeak) return;
     setVoicing(true);
-    speak(line, () => setVoicing(false));
+    return speak(line, () => setVoicing(false));
   }, [voiceOn, line, done]);
 
   useEffect(
