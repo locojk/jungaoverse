@@ -102,14 +102,19 @@ p {
   height: 100vh;
   height: 100dvh;
   overflow: hidden;
+  display: flex;
+  flex-direction: column;
   background: #050812;
 }
 
 .pan {
-  position: absolute;
-  inset: 0;
+  position: relative;
+  flex: 1 1 auto;
+  min-height: 0;
+  container-type: size;
   display: flex;
   align-items: flex-end;
+  justify-content: center;
   overflow-x: auto;
   overflow-y: hidden;
   overscroll-behavior-x: contain;
@@ -123,7 +128,7 @@ p {
 .scene {
   position: relative;
   flex: none;
-  width: max(100%, calc(100dvh * 16 / 9));
+  width: min(100cqw, calc(100cqh * 16 / 9));
   aspect-ratio: 16 / 9;
   container-type: inline-size;
   user-select: none;
@@ -849,11 +854,10 @@ p {
 /* ---------- JUNIOR dialogue ---------- */
 
 .dialog {
-  position: absolute;
+  position: relative;
   z-index: 10;
-  left: 50%;
-  bottom: calc(12px + env(safe-area-inset-bottom));
-  transform: translateX(-50%);
+  flex: none;
+  margin: 12px auto calc(12px + env(safe-area-inset-bottom));
   width: min(820px, calc(100% - 32px));
   display: grid;
   gap: 8px;
@@ -1813,6 +1817,7 @@ code { font-family: var(--mono); }
     inset: auto;
     flex: none;
     height: var(--pan-h);
+    justify-content: flex-start;
   }
 
   .scene {
